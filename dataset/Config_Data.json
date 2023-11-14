@@ -1,0 +1,19 @@
+{
+	"name": "Config_Data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "olympics-adf-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "http_fileNames.json",
+				"fileSystem": "config"
+			}
+		},
+		"schema": {}
+	}
+}
