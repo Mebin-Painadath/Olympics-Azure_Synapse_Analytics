@@ -26,6 +26,107 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/DeleteData_Pipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Fetch_FileName_Details",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "Config_Data",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Iterate_Over_fileNames",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Fetch_FileName_Details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Fetch_FileName_Details').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Delete_CSVFiles_From_StorageAccount",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "RowDataSink",
+											"type": "DatasetReference",
+											"parameters": {
+												"fileName": {
+													"value": "@item().fileName",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/Config_Data')]",
+				"[concat(variables('workspaceId'), '/datasets/RowDataSink')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Olympics_Pipeline')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
